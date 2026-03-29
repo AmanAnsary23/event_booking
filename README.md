@@ -1,6 +1,6 @@
 # 🎟️ Event Booking System
 
-A **Mini Event Management System** built as part of a selection test for Junior Node.js Backend Developer role. Users can browse events, book tickets, and mark attendance — all powered by a clean RESTful API.
+A **Mini Event Management System** built with Node.js, Express.js, and MySQL. Users can browse events, book tickets with unique booking codes, and mark attendance — all through a clean RESTful API.
 
 ---
 
@@ -8,13 +8,14 @@ A **Mini Event Management System** built as part of a selection test for Junior 
 
 | Layer | Technology |
 |-------|------------|
-| Runtime | Node.js |
+| Runtime | Node.js v18+ |
 | Framework | Express.js |
 | Database | MySQL 8 |
-| ORM/Driver | mysql2 |
-| Auth/Unique Code | UUID v9 |
+| DB Driver | mysql2 |
+| Unique Code | UUID v9 |
 | API Docs | Swagger UI (OpenAPI 3.0) |
 | Dev Tool | Nodemon |
+| Deployment | Docker + Docker Compose |
 
 ---
 
@@ -38,6 +39,8 @@ event-booking-system/
 │   └── app.js
 ├── schema.sql
 ├── swagger.yaml
+├── Dockerfile
+├── docker-compose.yml
 ├── .env
 ├── .gitignore
 ├── package.json
@@ -46,43 +49,59 @@ event-booking-system/
 
 ---
 
-## ⚙️ Setup & Installation
+## 🚀 Option 1 — Run with Docker (Recommended)
+
+This is the easiest way. Just one command starts everything — MySQL + Node.js server together.
+
+### Prerequisites
+- Docker installed
+- Docker Compose installed
+
+### Steps
+
+**1. Clone the repository**
+```bash
+git clone https://github.com/AmanAnsary23/event_booking.git
+cd event_booking
+```
+
+**2. Start everything with Docker**
+```bash
+docker compose up --build
+```
+
+**3. Wait for this message in terminal:**
+```
+Server running on port 3000
+```
+
+**4. Open API Docs in browser:**
+```
+http://localhost:3000/api-docs
+```
+
+That's it! ✅ No manual database setup needed — Docker handles everything automatically.
+
+---
+
+## ⚙️ Option 2 — Run Manually (Without Docker)
 
 ### Prerequisites
 - Node.js v18+
-- MySQL 8 (or Docker)
+- MySQL 8 running locally
 
----
-
-### Step 1 — Run MySQL via Docker
+### Step 1 — Clone the Repository
 ```bash
-docker run --name mysql-event \
-  -e MYSQL_ROOT_PASSWORD=root \
-  -e MYSQL_DATABASE=event_booking \
-  -p 3306:3306 \
-  -d mysql:8
+git clone https://github.com/AmanAnsary23/event_booking.git
+cd event_booking
 ```
 
-> Skip this step if you already have MySQL installed locally.
-
----
-
-### Step 2 — Clone the Repository
-```bash
-git clone https://github.com/AmanAnsary23/event-booking-system.git
-cd event-booking-system
-```
-
----
-
-### Step 3 — Install Dependencies
+### Step 2 — Install Dependencies
 ```bash
 npm install
 ```
 
----
-
-### Step 4 — Configure Environment Variables
+### Step 3 — Configure Environment Variables
 Create a `.env` file in the root directory:
 ```env
 DB_HOST=localhost
@@ -93,33 +112,31 @@ DB_NAME=event_booking
 PORT=3000
 ```
 
----
-
-### Step 5 — Import Database Schema
-Run the `schema.sql` file to create all tables:
+### Step 4 — Setup Database
 
 **Option A — Using MySQL CLI:**
 ```bash
-mysql -u root -p event_booking < schema.sql
+mysql -u root -p < schema.sql
 ```
 
 **Option B — Using DBeaver:**
 1. Open DBeaver and connect to your MySQL instance
 2. Open SQL Editor
-3. Open `schema.sql` and run it
+3. Open `schema.sql` file and run it
 
----
+### Step 5 — Start the Server
 
-### Step 6 — Start the Server
+**Development mode:**
 ```bash
-# Development mode (with nodemon)
 npm run dev
+```
 
-# Production mode
+**Production mode:**
+```bash
 npm start
 ```
 
-Server will start at:
+**Server will start at:**
 ```
 http://localhost:3000
 ```
@@ -147,7 +164,12 @@ http://localhost:3000/api-docs
 
 ---
 
-## 📋 Sample API Usage
+## 📋 Sample API Requests
+
+### Create a User (via SQL)
+```sql
+INSERT INTO users (name, email) VALUES ('John Doe', 'john@example.com');
+```
 
 ### Create an Event
 ```http
@@ -162,6 +184,37 @@ Content-Type: application/json
 }
 ```
 
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Event created",
+  "eventId": 1
+}
+```
+
+### Get All Events
+```http
+GET /events
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": 1,
+      "title": "Tech Conference 2026",
+      "description": "A great tech event",
+      "date": "2026-12-01T04:30:00.000Z",
+      "total_capacity": 100,
+      "remaining_tickets": 99
+    }
+  ]
+}
+```
+
 ### Book a Ticket
 ```http
 POST /bookings
@@ -173,7 +226,35 @@ Content-Type: application/json
 }
 ```
 
-Response includes a unique `booking_code` for attendance.
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Booking successful",
+  "booking_code": "550e8400-e29b-41d4-a716-446655440000"
+}
+```
+
+### Get User Bookings
+```http
+GET /users/1/bookings
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": 1,
+      "booking_code": "550e8400-e29b-41d4-a716-446655440000",
+      "booking_date": "2026-03-29T10:00:00.000Z",
+      "title": "Tech Conference 2026",
+      "date": "2026-12-01T04:30:00.000Z"
+    }
+  ]
+}
+```
 
 ### Mark Attendance
 ```http
@@ -181,7 +262,16 @@ POST /events/1/attendance
 Content-Type: application/json
 
 {
-  "booking_code": "your-unique-booking-code"
+  "booking_code": "550e8400-e29b-41d4-a716-446655440000"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Attendance marked",
+  "total_tickets_booked": 1
 }
 ```
 
@@ -189,20 +279,28 @@ Content-Type: application/json
 
 ## 🗄️ Database Schema
 
-4 tables: `users`, `events`, `bookings`, `event_attendance`
+4 tables with proper foreign key constraints:
 
-See `schema.sql` for full schema with foreign key constraints.
+| Table | Description |
+|-------|-------------|
+| `users` | Stores user information |
+| `events` | Stores event details with capacity |
+| `bookings` | Stores ticket bookings with unique code |
+| `event_attendance` | Stores attendance records |
+
+See `schema.sql` for full schema.
 
 ---
 
 ## 🔒 Key Features
 
-- ✅ Race condition handling using **MySQL transactions + FOR UPDATE lock**
-- ✅ Unique booking code generated via **UUID**
-- ✅ Input validation on all endpoints
-- ✅ Proper HTTP status codes
-- ✅ Clean separation of concerns (routes / controllers / db)
-- ✅ OpenAPI 3.0 documentation with Swagger UI
+- ✅ **Race condition handling** — MySQL transactions with `FOR UPDATE` lock prevents double booking
+- ✅ **Unique booking code** — UUID generated for every booking
+- ✅ **Input validation** — All endpoints validate required fields
+- ✅ **Error handling** — Proper HTTP status codes and error messages
+- ✅ **Clean architecture** — Separation of concerns (routes / controllers / db)
+- ✅ **OpenAPI 3.0 docs** — Swagger UI for easy API testing
+- ✅ **Docker support** — One command deployment with Docker Compose
 
 ---
 
