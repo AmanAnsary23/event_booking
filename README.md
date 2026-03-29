@@ -210,4 +210,4 @@ See `schema.sql` for full schema with foreign key constraints.
 
 **Aman Ansary**
 - GitHub: [@AmanAnsary23](https://github.com/AmanAnsary23)
-- LinkedIn: [aman-ansary](https://linkedin.com/in/aman-ansary)
+- LinkedIn: [aman-ansary]([https://linkedin.com/in/aman-ansary](https://www.linkedin.com/in/aman-ansary-00a97b31a/))
