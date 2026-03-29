@@ -1,5 +1,4 @@
-CREATE DATABASE event_booking;
-
+CREATE DATABASE IF NOT EXISTS event_booking;
 USE event_booking;
 
 CREATE DATABASE IF NOT EXISTS event_booking;
