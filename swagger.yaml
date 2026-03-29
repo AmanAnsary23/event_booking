@@ -1,0 +1,232 @@
+openapi: 3.0.0
+info:
+  title: Event Booking System API
+  description: Mini Event Management System API
+  version: 1.0.0
+servers:
+  - url: http://localhost:3000
+
+paths:
+  /events:
+    get:
+      summary: List all upcoming events
+      responses:
+        '200':
+          description: List of events
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Event'
+        '500':
+          description: Server error
+
+    post:
+      summary: Create a new event
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateEvent'
+      responses:
+        '201':
+          description: Event created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  eventId:
+                    type: integer
+        '400':
+          description: Validation error
+        '500':
+          description: Server error
+
+  /bookings:
+    post:
+      summary: Book a ticket for a user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateBooking'
+      responses:
+        '201':
+          description: Booking successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  booking_code:
+                    type: string
+        '400':
+          description: No tickets available or validation error
+        '404':
+          description: Event not found
+        '500':
+          description: Server error
+
+  /users/{id}/bookings:
+    get:
+      summary: Get all bookings by a user
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: User ID
+      responses:
+        '200':
+          description: List of bookings
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Booking'
+        '500':
+          description: Server error
+
+  /events/{id}/attendance:
+    post:
+      summary: Mark attendance using booking code
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: Event ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Attendance'
+      responses:
+        '200':
+          description: Attendance marked
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  total_tickets_booked:
+                    type: integer
+        '400':
+          description: booking_code is required
+        '404':
+          description: Invalid booking code
+        '500':
+          description: Server error
+
+components:
+  schemas:
+    Event:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+        date:
+          type: string
+          format: date-time
+        total_capacity:
+          type: integer
+        remaining_tickets:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+
+    CreateEvent:
+      type: object
+      required:
+        - title
+        - date
+        - total_capacity
+      properties:
+        title:
+          type: string
+          example: Tech Conference 2025
+        description:
+          type: string
+          example: A great tech event
+        date:
+          type: string
+          format: date-time
+          example: '2026-12-01 10:00:00'
+        total_capacity:
+          type: integer
+          example: 100
+
+    CreateBooking:
+      type: object
+      required:
+        - user_id
+        - event_id
+      properties:
+        user_id:
+          type: integer
+          example: 1
+        event_id:
+          type: integer
+          example: 1
+
+    Booking:
+      type: object
+      properties:
+        id:
+          type: integer
+        booking_code:
+          type: string
+        booking_date:
+          type: string
+          format: date-time
+        title:
+          type: string
+        date:
+          type: string
+          format: date-time
+        description:
+          type: string
+
+    Attendance:
+      type: object
+      required:
+        - booking_code
+      properties:
+        booking_code:
+          type: string
+          example: uuid-code-here
